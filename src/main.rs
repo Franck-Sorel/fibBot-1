@@ -27,7 +27,7 @@ async fn main() {
     println!("FibBot application is running...");
     println!("Fibonacci Calculation Enabled: {}", enable_fib);
     println!("Max Threshold is: {}", max_threshold);
-    println!("the pull_request number is: {}",pr_number);
+    println!("The pull_request number is: {}",pr_number);
 
 
 let github_repository =
@@ -37,7 +37,7 @@ let github_repository =
     let repo = github_repository_vec[1];
 
 let pr_files = get_pull_request(owner, repo, pr_number).await;
-println!("Extracted numbers: {:?}", pr_files);
+// println!("Extracted numbers: {:?}", pr_files);
 
 let pr_files = match pr_files {
     Ok(files) => files,
@@ -61,13 +61,20 @@ if pr_files.items.is_empty() {
     println!("No numbers found in this pull_request.");
 }
 
-let pr_content = pr_files.items.first().unwrap().patch.clone().unwrap();
-let _ = post_comment(&pr_content).await;
+let pr_content = pull_request_numbers.clone();
+let _ = post_comment(&format!("{:?}", pr_content)).await;
 
 let mut responses = Vec::new(); // Vector to store each Fibonacci result
 
-for num in &pull_request_numbers {
-    let fib = fib(*num as i128);
+for num in pr_content.iter() {
+    if num > &max_threshold.into() {
+        responses.push(format!(
+            "- Fibonacci({}) = Skipped (above threshold of {})",
+            num, max_threshold
+        ));
+        continue;
+    }
+    let fib = fib(*num as u128);
     responses.push(format!("- Fibonacci({}) = {}", num, fib)); // Store each result
 }
 
